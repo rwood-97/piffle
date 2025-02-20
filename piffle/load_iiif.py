@@ -3,15 +3,18 @@ from __future__ import annotations
 from .iiif_dataclasses import MANIFEST2_CLASSES, MANIFEST3_CLASSES
 from .iiif_dataclasses.image2 import Image2
 from .iiif_dataclasses.image3 import Image3
-from .utils import get_manifest
+from .utils import get_manifest, load_manifest
 
 
 class UnknownClassError(ValueError):
     pass
 
 
-def load_iiif_presentation(url: str, presentation_version: int | float | str):
-    manifest = get_manifest(url)
+def load_iiif_presentation(id: str, presentation_version: int | float | str):
+    try:
+        manifest = load_manifest(id)
+    except FileNotFoundError:
+        manifest = get_manifest(id)
 
     if presentation_version in [3, 3.0, "3", "3.0"]:
         manifest_class = MANIFEST3_CLASSES.get(manifest["type"], None)
@@ -28,8 +31,11 @@ def load_iiif_presentation(url: str, presentation_version: int | float | str):
     return manifest_class(**manifest)
 
 
-def load_iiif_image(url: str, image_version: int | float | str):
-    manifest = get_manifest(url)
+def load_iiif_image(id: str, image_version: int | float | str):
+    try:
+        manifest = load_manifest(id)
+    except FileNotFoundError:
+        manifest = get_manifest(id)
 
     if image_version in [3, 3.0, "3", "3.0"]:
         return Image3(**manifest)

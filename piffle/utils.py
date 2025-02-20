@@ -22,3 +22,8 @@ def get_manifest(url: str):
     response = requests.get(url)
     response.raise_for_status()
     return json.loads(response.text, object_hook=format_manifest)
+
+
+def load_manifest(path: str):
+    with open(path) as manifest:
+        return json.loads(manifest, object_hook=format_manifest)

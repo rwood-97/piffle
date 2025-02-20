@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from .base import IIIF3
+from .base import IIIF3, OtherMetadataDict
 from .dataclass_utils import GeoreferencingError, parse_item
 
 ## IIIF Presentation 3
@@ -18,6 +18,20 @@ class IIIFPresentation3(IIIF3):
         except GeoreferencingError:
             return parse_item(item, Annotation3)
 
+    def first_label(self):
+        try:
+            label = self.label
+        except AttributeError:
+            label = self.other_metadata.label
+        else:
+            raise AttributeError("No label found.")
+
+        # label can be a string or list of strings
+        if isinstance(label, str):
+            return label
+        elif isinstance(label, list):
+            return label[0]
+
 
 @dataclass()
 class Annotation3(IIIFPresentation3):
@@ -31,7 +45,7 @@ class Annotation3(IIIFPresentation3):
     thumbnail: list[Any] = field(default_factory=list)
     motivation: Any = None
     body: Any = None
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -66,7 +80,7 @@ class Annotation3(IIIFPresentation3):
         self.thumbnail = thumbnail
         self.motivation = motivation
         self.body = body
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
 
     def collect_annotations(self):
         return [self]
@@ -124,7 +138,7 @@ class AnnotationCollection3(IIIFPresentation3):
     total: Any = None
     thumbnail: list[Any] = field(default_factory=list)
     items: list[Annotation3] = field(default_factory=list)
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -163,7 +177,7 @@ class AnnotationCollection3(IIIFPresentation3):
         self.total = total
         self.thumbnail = thumbnail
         self.items = [self.parse_annotation(item) for item in items]
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
 
     def collect_annotations(self):
         return self.items
@@ -184,7 +198,7 @@ class AnnotationPage3(IIIFPresentation3):
     prev: Any = None
     first: Any = None
     last: Any = None
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -229,7 +243,7 @@ class AnnotationPage3(IIIFPresentation3):
         self.prev = prev
         self.first = first
         self.last = last
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
 
     def collect_annotations(self):
         return self.items
@@ -264,7 +278,7 @@ class PlaceholderCanvas3(IIIFPresentation3):
     annotations: list[AnnotationPage3 | Any] = field(
         default_factory=list
     )  # this is more like metadata or supplementary info
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -330,7 +344,7 @@ class PlaceholderCanvas3(IIIFPresentation3):
             parse_item(annotation, AnnotationPage3, raise_error=False)
             for annotation in annotations
         ]  # more like supplementary info, don't use this one
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
 
     def collect_annotations(self):
         annotations = []
@@ -437,7 +451,7 @@ class Collection3(IIIFPresentation3):
     partOf: Any = None
     items: list[Any] = field(default_factory=list)
     annotations: list[AnnotationPage3 | Any] = field(default_factory=list)
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -501,7 +515,7 @@ class Collection3(IIIFPresentation3):
             parse_item(annotation, AnnotationPage3, raise_error=False)
             for annotation in annotations
         ]
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
 
     def collect_annotations(self):
         annotations = []
@@ -524,7 +538,7 @@ class Range3(IIIFPresentation3):
     accompanyingCanvas: AccompanyingCanvas3 = None
     annotations: list[AnnotationPage3 | Any] = field(default_factory=list)
     thumbnail: list[Any] = field(default_factory=list)
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -566,7 +580,7 @@ class Range3(IIIFPresentation3):
             for annotation in annotations
         ]
         self.thumbnail = thumbnail
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
 
 
 @dataclass()
@@ -597,7 +611,7 @@ class Manifest3(IIIFPresentation3):
     items: list[Canvas3] = field(default_factory=list)
     structures: list[Range3] = field(default_factory=list)
     annotations: list[AnnotationPage3 | Any] = field(default_factory=list)
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -669,7 +683,7 @@ class Manifest3(IIIFPresentation3):
             parse_item(annotation, AnnotationPage3, raise_error=False)
             for annotation in annotations
         ]
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
 
     def collect_annotations(self):
         annotations = []

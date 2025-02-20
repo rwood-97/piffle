@@ -15,6 +15,8 @@ def parse_item(item: Any, dataclass: Any, raise_error: bool = True):
             return dataclass(**item)
         except GeoreferencingError:
             raise
+        except TypeError:
+            return item
         except ValueError:
             if raise_error:
                 raise ValueError(f"Item {item} is not an {dataclass}")

@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from .base import IIIF2
+from .base import IIIF2, OtherMetadataDict
 from .dataclass_utils import parse_item
 
 ## IIIF Presentation 2
@@ -11,7 +11,19 @@ from .dataclass_utils import parse_item
 
 @dataclass()
 class IIIFPresentation2(IIIF2):
-    pass
+    def first_label(self):
+        try:
+            label = self.label
+        except AttributeError:
+            label = self.other_metadata.label
+        else:
+            raise AttributeError("No label found.")
+
+        # label can be a string or list of strings
+        if isinstance(label, str):
+            return label
+        elif isinstance(label, list):
+            return label[0]
 
 
 @dataclass()
@@ -21,7 +33,7 @@ class Annotation2(IIIFPresentation2):
     type: Any
     resource: Any = None
     on: Any = None
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -42,7 +54,7 @@ class Annotation2(IIIFPresentation2):
         self.type = type
         self.resource = resource
         self.on = on
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
 
     def collect_annotations(self):
         return [self]
@@ -57,7 +69,7 @@ class AnnotationList2(IIIFPresentation2):
     id: Any
     type: Any
     resources: list[Annotation2] = field(default_factory=list)
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -76,7 +88,7 @@ class AnnotationList2(IIIFPresentation2):
         self.id = id
         self.type = type
         self.resources = [parse_item(resource, Annotation2) for resource in resources]
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
 
     def collect_annotations(self):
         annotations = []
@@ -92,7 +104,7 @@ class Canvas2(IIIFPresentation2):
     type: Any
     images: list[Annotation2] = field(default_factory=list)
     otherContent: list[AnnotationList2] = field(default_factory=list)
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -115,7 +127,7 @@ class Canvas2(IIIFPresentation2):
         self.otherContent = [
             parse_item(content, AnnotationList2) for content in otherContent
         ]
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
 
     def collect_annotations(self):
         # TODO: Not sure which annotations to collect here??
@@ -134,7 +146,7 @@ class Range2(IIIFPresentation2):
     type: Any
     ranges: list[Any] = field(default_factory=list)  # a list of ranges, they self loop
     canvases: list[Canvas2] = field(default_factory=list)
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -158,7 +170,7 @@ class Range2(IIIFPresentation2):
         self.type = type
         self.ranges = ranges
         self.canvases = [parse_item(canvas, Canvas2) for canvas in canvases]
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
 
     def collect_annotations(self):
         annotations = []
@@ -173,7 +185,7 @@ class Sequence2(IIIFPresentation2):
     id: Any
     type: Any
     canvases: list[Canvas2] = field(default_factory=list)
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -192,7 +204,7 @@ class Sequence2(IIIFPresentation2):
         self.id = id
         self.type = type
         self.canvases = [parse_item(canvas, Canvas2) for canvas in canvases]
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
 
     def collect_annotations(self):
         annotations = []
@@ -210,7 +222,7 @@ class Manifest2(IIIFPresentation2):
     sequences: list[Sequence2] = field(default_factory=list)
     structures: list[Range2] = field(default_factory=list)
     metadata: list[Any] = field(default_factory=list)
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -235,7 +247,7 @@ class Manifest2(IIIFPresentation2):
         self.sequences = [parse_item(sequence, Sequence2) for sequence in sequences]
         self.structures = [parse_item(structure, Range2) for structure in structures]
         self.metadata = metadata
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
 
     def collect_annotations(self):
         # TODO: Not sure which annotations to collect here??
@@ -256,7 +268,7 @@ class Collection2(IIIFPresentation2):
         default_factory=list
     )  # a list of collections, they self loop
     manifests: list[Manifest2] = field(default_factory=list)
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -277,7 +289,7 @@ class Collection2(IIIFPresentation2):
         self.type = type
         self.collections = collections
         self.manifests = [parse_item(manifest, Manifest2) for manifest in manifests]
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
 
     def collect_annotations(self):
         annotations = []

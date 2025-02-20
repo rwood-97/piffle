@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from .base import IIIF3
+from .base import IIIF3, OtherMetadataDict
 
 ## IIIF Image 3
 
@@ -37,7 +37,7 @@ class Image3(IIIFImage3):
     seeAlso: Any = None
     partOf: Any = None
     service: Any = None
-    other_metadata: dict = field(default_factory=dict)
+    other_metadata: OtherMetadataDict = field(default_factory=OtherMetadataDict)
 
     def __init__(
         self,
@@ -102,4 +102,4 @@ class Image3(IIIFImage3):
         self.seeAlso = seeAlso
         self.partOf = partOf
         self.service = service
-        self.other_metadata = kwargs
+        self.other_metadata = OtherMetadataDict(kwargs)
